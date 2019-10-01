@@ -23,9 +23,9 @@ namespace ConsoleApp1
         {
            var random = new Random();
 
-           Parallel.For(0, Array.Length, index => { Array[index] = random.Next(); });
+           Parallel.For(0, Array.Length, index => { Array[index] = random.Next(Int32.MinValue, Int32.MaxValue); });
 
-           Parallel.For(0, SmallArray.Length, index => { SmallArray[index] = random.Next(); });
+           Parallel.For(0, SmallArray.Length, index => { SmallArray[index] = random.Next(Int32.MinValue, Int32.MaxValue); });
 
            Console.WriteLine(Array.Length);
 

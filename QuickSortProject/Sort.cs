@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace QuickSortProject
 {
@@ -10,6 +11,8 @@ namespace QuickSortProject
             HybridSort(array, 0, array.Length - 1, comparer);
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsSorted<T>(ref T[] arr, IComparer<T> comparer)
         {
             for (int i = 1; i < arr.Length; i++)
@@ -57,6 +60,7 @@ namespace QuickSortProject
             keys[lo + i - 1] = key;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int FloorLog2PlusOne(int n)
         {
             var num = 0;
@@ -173,6 +177,7 @@ namespace QuickSortProject
             IntroSort(ref keys, index, length, FloorLog2PlusOne(length), comparer);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Swap<T>(ref Span<T> a, int i, int j)
         {
             if (i == j)
@@ -181,6 +186,8 @@ namespace QuickSortProject
             a[i] = a[j];
             a[j] = obj;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void SwapIfGreater<T>(ref Span<T> keys, Comparison<T> comparer, int a, int b)
         {
             if (a == b || comparer(keys[a], keys[b]) <= 0)
