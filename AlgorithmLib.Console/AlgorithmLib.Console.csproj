@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\QuickSortProject\QuickSortProject.csproj" />
+      <ProjectReference Include="..\AlgorithmLib\AlgorithmLib.csproj" />
     </ItemGroup>
 
 </Project>

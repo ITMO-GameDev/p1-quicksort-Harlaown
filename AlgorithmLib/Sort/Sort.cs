@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace QuickSortProject
+namespace AlgorithmLib
 {
     public static class Extension
     {

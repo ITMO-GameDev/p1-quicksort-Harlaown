@@ -1,11 +1,11 @@
-using QuickSortProject;
+using AlgorithmLib;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace QuickSort.xUnit.Test
+namespace AlgorithmLib.Sort.Test
 {
     public class UnitTest
     {
