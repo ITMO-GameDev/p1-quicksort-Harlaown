@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace AlgorithmLib
+namespace AlgorithmLib.Sort
 {
-    public static class Extension
+    public static class SortExtension
     {
         public static void HybridSort<T>(this T[] array, IComparer<T> comparer)
         {
@@ -178,7 +178,7 @@ namespace AlgorithmLib
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Swap<T>(ref Span<T> a, int i, int j)
+        internal static void Swap<T>(ref Span<T> a, int i, int j)
         {
             if (i == j)
                 return;
