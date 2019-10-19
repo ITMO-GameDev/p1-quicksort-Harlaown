@@ -3,32 +3,33 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
+using AlgorithmLib.Sort;
 using Xunit;
 
-namespace AlgorithmLib.Sort.Test
+namespace AlgorithmLib.Test
 {
-    public class UnitTest
+    public class SortTest
     {
         private const int SmallSize = 10;
         private const int MediumSize = 150;
         private const int BigSize = 1500;
         private const int VeryBigSize = sizeof(Int32) << 8 << 10;
 
-        private static readonly Random rnd = new Random((int)DateTime.Now.Ticks);
+        private static readonly Random Rnd = new Random((int)DateTime.Now.Ticks);
 
         private static void RandomArray(int[] array)
         {
-            Parallel.For(0, array.Length, index => { array[index] = rnd.Next(); });
+            Parallel.For(0, array.Length, index => { array[index] = Rnd.Next(); });
         }
 
-        private static void RandomArray<T>(T[] array, Func<T> func)
+        private static void RandomArray<T>(IList<T> array, Func<T> func)
         {
-            Parallel.For(0, array.Length, index => { array[index] = func(); });
+            Parallel.For(0, array.Count, index => { array[index] = func(); });
         }
 
-        private static void Shuffle<T>(ref Random rng, T[] array)
+        private static void Shuffle<T>(ref Random rng, IList<T> array)
         {
-            int n = array.Length;
+            int n = array.Count;
             while (n > 1)
             {
                 int k = rng.Next(n--);
@@ -50,9 +51,9 @@ namespace AlgorithmLib.Sort.Test
             return true;
         }
 
-        private static bool IsSorted<T>(T[] arr, IComparer<T> comparer)
+        private static bool IsSorted<T>(IReadOnlyList<T> arr, IComparer<T> comparer)
         {
-            for (int i = 1; i < arr.Length; i++)
+            for (int i = 1; i < arr.Count; i++)
             {
                 if (comparer.Compare(arr[i - 1], arr[i]) > 0)
                 {
@@ -178,7 +179,7 @@ namespace AlgorithmLib.Sort.Test
             Vector2[] array = new Vector2[SmallSize];
             RandomArray(array, () =>
             {
-                Vector2 temp = new Vector2(rnd.Next(), rnd.Next());
+                Vector2 temp = new Vector2(Rnd.Next(), Rnd.Next());
                 return temp;
             });
             var comparer = Comparer<Vector2>.Create(((self, other) =>
@@ -203,7 +204,7 @@ namespace AlgorithmLib.Sort.Test
             Vector2[] array = new Vector2[MediumSize];
             RandomArray(array, () =>
             {
-                Vector2 temp = new Vector2(rnd.Next(), rnd.Next());
+                Vector2 temp = new Vector2(Rnd.Next(), Rnd.Next());
                 return temp;
             });
             var comparer = Comparer<Vector2>.Create(((self, other) =>
@@ -228,7 +229,7 @@ namespace AlgorithmLib.Sort.Test
             Vector2[] array = new Vector2[BigSize];
             RandomArray(array, () =>
             {
-                Vector2 temp = new Vector2(rnd.Next(), rnd.Next());
+                Vector2 temp = new Vector2(Rnd.Next(), Rnd.Next());
                 return temp;
             });
             var comparer = Comparer<Vector2>.Create(((self, other) =>
@@ -253,7 +254,7 @@ namespace AlgorithmLib.Sort.Test
             Vector2[] array = new Vector2[VeryBigSize];
             RandomArray(array, () =>
             {
-                Vector2 temp = new Vector2(rnd.Next(), rnd.Next());
+                Vector2 temp = new Vector2(Rnd.Next(), Rnd.Next());
                 return temp;
             });
             var comparer = Comparer<Vector2>.Create(((self, other) =>
