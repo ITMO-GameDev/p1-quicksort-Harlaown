@@ -5,7 +5,6 @@ namespace AlgorithmLib.Types
 {
     internal interface IArray<T> : IEnumerable<T>, IDisposable
     {
-
         void Insert( T value);
 
         void Insert(int position,  T value);
@@ -14,8 +13,6 @@ namespace AlgorithmLib.Types
         
         T this[int index] { get; set; }
         
-        int Size { get;  }
-
-        
+        int Size { get; }
     }
 }

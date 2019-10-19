@@ -1,15 +1,14 @@
-using System;
+using AlgorithmLib.Types;
 using Xunit;
 
-namespace AlgorithmLib.Types.Test
+namespace AlgorithmLib.Test
 {
     public class ArrayAndIteratorTest
     {
         [Fact]
         public void CreateArray()
         {
-            int size = 40;
-
+            const int size = 40;
             var array = new Array<string>(size);
             
             Assert.NotNull(array);
@@ -20,7 +19,7 @@ namespace AlgorithmLib.Types.Test
         [Fact]
         public void Insert()
         {
-            var str = "test";
+            const string str = "test";
             var array = new Array<string>();
             var size = array.Size;
             
@@ -34,8 +33,8 @@ namespace AlgorithmLib.Types.Test
         [Fact]
         public void InsertByIndex()
         {
-            var str = "test";
-            var index = 3;
+            const string str = "test";
+            const int index = 3;
             var array = new Array<string>();
             var size = array.Size;
             
@@ -49,8 +48,8 @@ namespace AlgorithmLib.Types.Test
         [Fact]
         public void Remove()
         {
-            int index = 2;
-            var str = "test";
+            const int index = 2;
+            const string str = "test";
             var array = new Array<string>();
             var size = array.Size;
             for (int i = 0; i < size; i++)
@@ -101,7 +100,7 @@ namespace AlgorithmLib.Types.Test
         [Fact]
         public void IteratorSetItem()
         {
-            var str = "anime";
+            const string str = "anime";
             var array = InitArray();
             var iterator = array.GetIterator();
 
@@ -120,7 +119,7 @@ namespace AlgorithmLib.Types.Test
         [Fact]
         public void IteratorInsertItem()
         {
-            var str = "anime";
+            const string str = "anime";
             var array = InitArray();
             var iterator = array.GetIterator();
             iterator.Next();
@@ -159,6 +158,37 @@ namespace AlgorithmLib.Types.Test
             
             Assert.NotNull(iterator);
             Assert.False(condition);
+        }
+        
+        [Fact]
+        public void IteratorRemove()
+        {
+            var array = InitArray();
+            var iterator = array.GetIterator();
+            iterator.Next();
+            iterator.Next();
+            var current = iterator.Current;
+            
+            iterator.Remove();
+            var newCurrent = iterator.Current;
+            
+            Assert.NotNull(iterator);
+            Assert.NotEqual(current, newCurrent);
+        }
+        
+        [Fact]
+        public void IteratorGoToIndex()
+        {
+            var array = InitArray();
+            var iterator = array.GetIterator();
+            var currentItem = array[5];
+            
+            iterator.ToIndex(5);
+            var iteratorCurrent = iterator.Current;
+            
+            
+            Assert.NotNull(iterator);
+            Assert.Equal(currentItem, iteratorCurrent);
         }
     }
 }

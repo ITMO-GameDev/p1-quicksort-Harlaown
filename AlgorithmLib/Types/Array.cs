@@ -144,6 +144,8 @@ namespace AlgorithmLib.Types
             var offsetSpan = array.Span.Slice(position + 1, length -  1);
             
             offsetSpan.CopyTo(span);
+
+            array.Span[Size - 1] = default(T);
             
             --Size;
         }
