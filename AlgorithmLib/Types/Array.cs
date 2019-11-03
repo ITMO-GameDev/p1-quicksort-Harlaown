@@ -32,7 +32,7 @@ namespace AlgorithmLib.Types
             return (IsDisposable ? null : new ArrayIterator<T>(this)) ?? throw new ObjectDisposedException("Object has removed");
         }
 
-        public IIterator<T> GetIterator()
+        public IArrayIterator<T> GetIterator()
         {
             return (IsDisposable ? null : new ArrayIterator<T>(this)) ?? throw new ObjectDisposedException("Object has removed");
         }
