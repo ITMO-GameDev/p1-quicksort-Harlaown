@@ -1,30 +1,8 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 
 namespace AlgorithmLib.Types
 {
-    public interface IIterator<T> : IEnumerator<T>
-    {
-        bool HasNext();
-
-        bool HasPrev();
-
-        void Next();
-
-        void Prev();
-
-        void Set(T value);
-
-        void Insert(T value);
-
-        void Remove();
-
-        void ToIndex(int index);
-    }
-    
-    
-    
-    internal class ArrayIterator<T> : IIterator<T>
+    internal class ArrayIterator<T> : IArrayIterator<T>
     {
         private Array<T> array;
 
