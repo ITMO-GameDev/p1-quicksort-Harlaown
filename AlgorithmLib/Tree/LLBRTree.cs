@@ -15,7 +15,7 @@ namespace AlgorithmLib.Tree
     /// <typeparam name="TKey">Type of keys.</typeparam>
     /// <typeparam name="TValue">Type of values.</typeparam>
     public class LeftLeaningRedBlackTree<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
-        where TKey : IComparable where TValue : IComparable
+        where TKey : IComparable
 
     {
         private readonly Comparison<TKey> keyComparison;
@@ -400,6 +400,7 @@ namespace AlgorithmLib.Tree
         public class TreeIterator
         {
             private readonly LeftLeaningRedBlackTree<TKey, TValue> tree;
+			
             private readonly Stack<RBNode> nextStack = new Stack<RBNode>();
             private readonly Stack<RBNode> prevStack = new Stack<RBNode>();
             
@@ -442,8 +443,7 @@ namespace AlgorithmLib.Tree
             public bool HasNext()
             {
                 return Current != null;
-            }
-            
+            }           
             
             
             public void Next()
@@ -481,7 +481,7 @@ namespace AlgorithmLib.Tree
 
             public bool HasPrev()
             {
-                return Current != null;
+                return Current != tree.rootNode;
             }
             
             public void Prev()
