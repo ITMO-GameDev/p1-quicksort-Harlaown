@@ -9,7 +9,7 @@ void* FixedSizeAllocator::Alloc()
 		head = GetPage();
 	}
 	auto tmp = head;
-	head = (char*)head + blockSize;
+	head = static_cast<char*>(head) + blockSize;
 	free -= blockSize;
 	return tmp;
 }
@@ -33,4 +33,3 @@ void* FixedSizeAllocator::GetPage()
 	pages.push_back(page);
 	return page;
 }
-

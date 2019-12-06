@@ -1,53 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using AlgorithmLib.Tree;
 
 namespace AlgorithmLib.Alloc
 {
-    internal static unsafe class WinAPI
-    {
-        [Flags]
-        public enum AllocationType : uint
-        {
-            Commit = 0x1000,
-            Reserve = 0x2000,
-            Reset = 0x80000,
-            LargePages = 0x20000000,
-            Physical = 0x400000,
-            TopDown = 0x100000,
-            WriteWatch = 0x200000
-        }
-        [Flags]
-        public enum MemoryProtection : uint
-        {
-            Execute = 0x10,
-            ExecuteRead = 0x20,
-            ExecuteReadwrite = 0x40,
-            ExecuteWriteCopy = 0x80,
-            NoAccess = 0x01,
-            Readonly = 0x02,
-            Readwrite = 0x04,
-            WriteCopy = 0x08,
-            GuardModifierflag = 0x100,
-            NocacheModifierflag = 0x200,
-            WriteCombineModifierflag = 0x400
-        }
-        [Flags]
-        public enum FreeType : uint
-        {
-            MemDecommit = 0x4000,
-            MemRelease = 0x8000,
-        }
-
-        [DllImport("kernel32.dll")]
-        internal static extern bool VirtualFree(IntPtr lpAddress, UInt32 dwSize, FreeType dwFreeType);
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern IntPtr VirtualAlloc(IntPtr lpAddress, UInt32 dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern IntPtr VirtualProtect(IntPtr lpAddress, int dwSize, MemoryProtection flProtect, out MemoryProtection flOldProtect);
-    }
-
     public unsafe class FixedSizeAllocator : IDisposable
     {
         private const uint PageSize = 4096;
@@ -95,7 +52,7 @@ namespace AlgorithmLib.Alloc
 
         private IntPtr CreatePage()
         {
-            var page = WinAPI.VirtualAlloc(IntPtr.Zero, PageSize,  WinAPI.AllocationType.Commit | WinAPI.AllocationType.Reserve, WinAPI.MemoryProtection.Readwrite);
+            var page = WinApi.VirtualAlloc(IntPtr.Zero, PageSize,  WinApi.AllocationType.Commit | WinApi.AllocationType.Reserve, WinApi.MemoryProtection.Readwrite);
             pages.Add(page);
             return page;
         }
@@ -169,78 +126,11 @@ namespace AlgorithmLib.Alloc
         {
             if (disposing) return;
 
-            foreach (var ptr in pages) WinAPI.VirtualFree(ptr, 0, WinAPI.FreeType.MemRelease);
+            foreach (var ptr in pages) WinApi.VirtualFree(ptr, 0, WinApi.FreeType.MemRelease);
             head = IntPtr.Zero;
             free = 0;
             isDispose = true;
         }
 
-    }
-
-    public unsafe class Allocator : IDisposable
-    {
-        private readonly Dictionary<int, FixedSizeAllocator> allocators = new Dictionary<int, FixedSizeAllocator>();
-
-        public Allocator()
-        {
-            
-        }
-
-        private static int Align(int size)
-        {
-            size--;
-            var d = 512;
-            for (; (d & size) == 0; d >>= 1);
-            return (int)(d << 1);
-        }
-
-        public bool IsInited { get; private set; }
-        public void Init()
-        {
-            uint start = 8;
-
-            for (; start <= 512; start <<= 2)
-            {
-                var alocator = new FixedSizeAllocator(start);
-                alocator.Init();
-
-                allocators.Add((int)start, alocator);
-            }
-
-            IsInited = true;
-        }
-
-        public IntPtr Alloc(int size)
-        {
-            var alignSize = Align(size);
-
-            if (alignSize > 512)
-            {
-                return WinAPI.VirtualAlloc(IntPtr.Zero, (uint)size,
-                    WinAPI.AllocationType.Commit | WinAPI.AllocationType.Reserve, WinAPI.MemoryProtection.Readwrite);
-            }
-
-            var allocator = allocators[alignSize];
-            return allocator.Alloc();
-        }
-
-        public void Destroy()
-        {
-            if(isDispose) return;
-
-            foreach (var fixedSizeAllocator in allocators.Values)
-            {
-                fixedSizeAllocator.Destroy();
-            }
-
-            isDispose = true;
-        }
-
-        private bool isDispose = false;
-
-        public void Dispose()
-        {
-            Destroy();
-        }
     }
 }

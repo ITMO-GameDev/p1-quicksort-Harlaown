@@ -152,10 +152,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AlgorithmLib.Allocator.cpp" />
+    <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="FixedSizeAllocator.cpp" />
+    <ClCompile Include="FreeListAllocator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Allocator.h" />
     <ClInclude Include="FixedSizeAllocator.h" />
+    <ClInclude Include="FreeListAllocator.h" />
+    <ClInclude Include="SinglyLinkedList.h" />
+    <ClInclude Include="SinglyLinkedListImpl.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
