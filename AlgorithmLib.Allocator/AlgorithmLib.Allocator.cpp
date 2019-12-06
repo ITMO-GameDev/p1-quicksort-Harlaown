@@ -4,45 +4,36 @@
 #include <iostream>
 #include "windows.h"
 #include "FixedSizeAllocator.h"
+#include "FreeListAllocator.h"
 using std::cout;
-
-
 
 
 int main()
 {	
-	void* p = nullptr;
-	p = VirtualAlloc(nullptr, 4096, MEM_RESERVE, PAGE_READWRITE);
-	if (p != nullptr)
-	{
-		cout << "Alloc" << std::endl;
-
-		if (VirtualFree(p, 0, MEM_RELEASE))
-		{
-			cout << "Ok Free";
-		}
-		else
-		{
-			cout << "Not Free" << std::endl;
-		}
-	}
-
 	auto allocator = new FixedSizeAllocator(sizeof(int));
 
 	auto first = allocator->Alloc();
 	auto second = allocator->Alloc();
 
-	*(int*)first = 15;
+	*static_cast<int*>(first) = 15;
 
-	*(int*)second = 18;
+	*static_cast<int*>(second) = 18;
 
 	auto third = allocator->Alloc();
 
-	*(int*)third = 48;
+	*static_cast<int*>(third) = 48;
 
 	delete allocator;
-}
 
 
+	auto listAllocator = new FreeListAllocator(4096 * 40, FreeListAllocator::FIND_FIRST);
 
+	listAllocator->Init();
 	
+	auto ptr = listAllocator->Allocate(512, 8);
+
+	listAllocator->Free(ptr);
+
+	delete listAllocator;
+	
+}

@@ -21,7 +21,9 @@ namespace AlgorithmLib.Console
             
             for (int i = 0; i < 4096/512; i++)
             {
-                NewMethod(ref alloc);
+                var ptr = alloc.Alloc();
+                NewMethod(ref ptr, (int) alloc.BlockSize);
+                alloc.PrintCurrentPage();
             }
 
             System.Console.Clear();
@@ -30,6 +32,15 @@ namespace AlgorithmLib.Console
             System.Console.WriteLine(aligh( 11));
 
             alloc.Dispose();
+            
+
+            var listal = new FreeListAllocator(6144, FreeListAllocator.FindPlacementPolicy.First);
+
+            listal.Init();
+
+            var ptr1 = listal.Allocate(512, 8);
+            NewMethod(ref ptr1, 512);
+            listal.Free(ptr1);
             
         }
 
@@ -41,19 +52,14 @@ namespace AlgorithmLib.Console
             return (int) (d << 1);
         }
 
-        private static void NewMethod(ref FixedSizeAllocator alloc)
+        private static void NewMethod(ref IntPtr alloc, int size)
         {
-            var ptr = alloc.Alloc();
-
-            var span = new Span<int>(ptr.ToPointer(), (int) (alloc.BlockSize / sizeof(int)));
+            var span = new Span<int>(alloc.ToPointer(), (int)size / sizeof(int));
 
             for (int i = 0; i < span.Length; i++)
             {
                 span[i] = rnd.Next(Int32.MinValue, Int32.MaxValue);
             }
-            
-
-            alloc.PrintCurrentPage();
         }
         public static Random rnd = new Random();
     }
