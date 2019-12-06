@@ -19,10 +19,9 @@ private:
 	void* GetPage();
 
 	const static size_t PageSize = 4096;
-	
+
 	std::vector<void*> pages;
 	void* head;
 	size_t free;
 	size_t blockSize;
 };
-
