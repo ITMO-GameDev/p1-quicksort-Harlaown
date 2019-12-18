@@ -15,11 +15,11 @@ namespace AlgorithmLib.Tree
     /// <typeparam name="TKey">Type of keys.</typeparam>
     /// <typeparam name="TValue">Type of values.</typeparam>
     public class LeftLeaningRedBlackTree<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
-        where TKey : IComparable where TValue : IComparable
+        where TKey : IComparable
 
     {
         private readonly Comparison<TKey> keyComparison;
-        private RBNode rootNode;
+        private Node rootNode;
 
         public LeftLeaningRedBlackTree(Comparison<TKey> keyComparison)
         {
@@ -28,12 +28,12 @@ namespace AlgorithmLib.Tree
 
         public TKey MinimumKey
         {
-            get { return GetExtreme(rootNode, n => n.RBLeft, n => n.Key); }
+            get { return GetExtreme(rootNode, n => n.Left, n => n.Key); }
         }
 
         public TKey MaximumKey
         {
-            get { return GetExtreme(rootNode, n => n.RBRight, n => n.Key); }
+            get { return GetExtreme(rootNode, n => n.Right, n => n.Key); }
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
@@ -165,161 +165,161 @@ namespace AlgorithmLib.Tree
             return Traverse(rootNode, n => true, n => n.Value);
         }
 
-        private static bool IsRed(RBNode node)
+        private static bool IsRed(Node node)
         {
             if (node == null) return false;
 
             return !node.IsBlack;
         }
 
-        private RBNode Add(RBNode node, TKey key, TValue value)
+        private Node Add(Node node, TKey key, TValue value)
         {
             if (node == null)
             {
                 Count++;
-                return new RBNode {Key = key, Value = value};
+                return new Node {Key = key, Value = value};
             }
 
-            if (IsRed(node.RBLeft) && IsRed(node.RBRight)) FlipColor(node);
+            if (IsRed(node.Left) && IsRed(node.Right)) FlipColor(node);
 
             var comparisonResult = KeyAndValueComparison(key, node.Key);
             if (comparisonResult < 0)
-                node.RBLeft = Add(node.RBLeft, key, value);
+                node.Left = Add(node.Left, key, value);
             else if (comparisonResult > 0)
-                node.RBRight = Add(node.RBRight, key, value);
+                node.Right = Add(node.Right, key, value);
             else
                 node.Value = value;
 
-            if (IsRed(node.RBRight)) node = RotateLeft(node);
+            if (IsRed(node.Right)) node = RotateLeft(node);
 
-            if (IsRed(node.RBLeft) && IsRed(node.RBLeft.RBLeft)) node = RotateRight(node);
+            if (IsRed(node.Left) && IsRed(node.Left.Left)) node = RotateRight(node);
             return node;
         }
 
-        private RBNode Remove(RBNode node, TKey key)
+        private Node Remove(Node node, TKey key)
         {
             var comparisonResult = KeyAndValueComparison(key, node.Key);
             if (comparisonResult < 0)
             {
-                if (node.RBLeft == null) return FixUp(node);
-                if (!IsRed(node.RBLeft) && !IsRed(node.RBLeft.RBLeft)) node = MoveRedLeft(node);
-                node.RBLeft = Remove(node.RBLeft, key);
+                if (node.Left == null) return FixUp(node);
+                if (!IsRed(node.Left) && !IsRed(node.Left.Left)) node = MoveRedLeft(node);
+                node.Left = Remove(node.Left, key);
             }
             else
             {
-                if (IsRed(node.RBLeft)) node = RotateRight(node);
+                if (IsRed(node.Left)) node = RotateRight(node);
 
-                if (KeyAndValueComparison(key, node.Key) == 0 && node.RBRight == null)
+                if (KeyAndValueComparison(key, node.Key) == 0 && node.Right == null)
                 {
                     Count--;
                     return node;
                 }
 
-                if (node.RBRight == null) return FixUp(node);
-                if (!IsRed(node.RBRight) && !IsRed(node.RBRight.RBLeft)) node = MoveRedRight(node);
+                if (node.Right == null) return FixUp(node);
+                if (!IsRed(node.Right) && !IsRed(node.Right.Left)) node = MoveRedRight(node);
 
                 if (KeyAndValueComparison(key, node.Key) == 0)
                 {
                     Count--;
-                    var m = GetExtreme(node.RBRight, n => n.RBLeft, n => n);
+                    var m = GetExtreme(node.Right, n => n.Left, n => n);
                     node.Key = m.Key;
                     node.Value = m.Value;
-                    node.RBRight = DeleteMinimum(node.RBRight);
+                    node.Right = DeleteMinimum(node.Right);
                 }
                 else
                 {
-                    node.RBRight = Remove(node.RBRight, key);
+                    node.Right = Remove(node.Right, key);
                 }
             }
 
             return FixUp(node);
         }
 
-        private static void FlipColor(RBNode node)
+        private static void FlipColor(Node node)
         {
             node.IsBlack = !node.IsBlack;
-            node.RBLeft.IsBlack = !node.RBLeft.IsBlack;
-            node.RBRight.IsBlack = !node.RBRight.IsBlack;
+            node.Left.IsBlack = !node.Left.IsBlack;
+            node.Right.IsBlack = !node.Right.IsBlack;
         }
 
-        private static RBNode RotateLeft(RBNode node)
+        private static Node RotateLeft(Node node)
         {
-            var x = node.RBRight;
-            node.RBRight = x.RBLeft;
+            var x = node.Right;
+            node.Right = x.Left;
             x.Left = node;
             x.IsBlack = node.IsBlack;
             node.IsBlack = false;
             return x;
         }
 
-        private static RBNode RotateRight(RBNode node)
+        private static Node RotateRight(Node node)
         {
-            var x = node.RBLeft;
-            node.RBLeft = x.RBRight;
+            var x = node.Left;
+            node.Left = x.Right;
             x.Right = node;
             x.IsBlack = node.IsBlack;
             node.IsBlack = false;
             return x;
         }
 
-        private static RBNode MoveRedLeft(RBNode node)
+        private static Node MoveRedLeft(Node node)
         {
             FlipColor(node);
-            if (!IsRed(node.RBRight.RBLeft)) return node;
-            node.RBRight = RotateRight(node.RBRight);
+            if (!IsRed(node.Right.Left)) return node;
+            node.Right = RotateRight(node.Right);
             node = RotateLeft(node);
             FlipColor(node);
 
-            if (IsRed(node.RBRight.RBRight)) node.RBRight = RotateLeft(node.RBRight);
+            if (IsRed(node.Right.Right)) node.Right = RotateLeft(node.Right);
 
             return node;
         }
 
-        private static RBNode MoveRedRight(RBNode node)
+        private static Node MoveRedRight(Node node)
         {
             FlipColor(node);
-            if (!IsRed(node.RBLeft.RBLeft)) return node;
+            if (!IsRed(node.Left.Left)) return node;
             node = RotateRight(node);
             FlipColor(node);
 
             return node;
         }
 
-        private static RBNode DeleteMinimum(RBNode node)
+        private static Node DeleteMinimum(Node node)
         {
-            if (node.RBLeft == null) return null;
+            if (node.Left == null) return null;
 
-            if (!IsRed(node.RBLeft) && !IsRed(node.RBLeft.RBLeft)) node = MoveRedLeft(node);
+            if (!IsRed(node.Left) && !IsRed(node.Left.Left)) node = MoveRedLeft(node);
 
-            node.RBLeft = DeleteMinimum(node.RBLeft);
+            node.Left = DeleteMinimum(node.Left);
 
             return FixUp(node);
         }
 
-        private static RBNode FixUp(RBNode node)
+        private static Node FixUp(Node node)
         {
-            if (IsRed(node.RBRight)) node = RotateLeft(node);
+            if (IsRed(node.Right)) node = RotateLeft(node);
 
-            if (IsRed(node.RBLeft) && IsRed(node.RBLeft.RBLeft)) node = RotateRight(node);
+            if (IsRed(node.Left) && IsRed(node.Left.Left)) node = RotateRight(node);
 
-            if (IsRed(node.RBLeft) && IsRed(node.RBRight)) FlipColor(node);
+            if (IsRed(node.Left) && IsRed(node.Right)) FlipColor(node);
 
-            if (null == node.RBLeft || !IsRed(node.RBLeft.RBRight) || IsRed(node.RBLeft.RBLeft)) return node;
-            node.RBLeft = RotateLeft(node.RBLeft);
-            if (IsRed(node.RBLeft)) node = RotateRight(node);
+            if (null == node.Left || !IsRed(node.Left.Right) || IsRed(node.Left.Left)) return node;
+            node.Left = RotateLeft(node.Left);
+            if (IsRed(node.Left)) node = RotateRight(node);
             return node;
         }
 
-        private RBNode GetNodeForKey(TKey key)
+        private Node GetNodeForKey(TKey key)
         {
             var node = rootNode;
             while (node != null)
             {
                 var comparisonResult = keyComparison(key, node.Key);
                 if (comparisonResult < 0)
-                    node = node.RBLeft;
+                    node = node.Left;
                 else if (comparisonResult > 0)
-                    node = node.RBRight;
+                    node = node.Right;
                 else
                     return node;
             }
@@ -327,7 +327,7 @@ namespace AlgorithmLib.Tree
             return null;
         }
 
-        private static T GetExtreme<T>(RBNode node, Func<RBNode, RBNode> successor, Func<RBNode, T> selector)
+        private static T GetExtreme<T>(Node node, Func<Node, Node> successor, Func<Node, T> selector)
         {
             var extreme = default(T);
             var current = node;
@@ -340,24 +340,24 @@ namespace AlgorithmLib.Tree
             return extreme;
         }
 
-        private static IEnumerable<T> Traverse<T>(RBNode node, Func<RBNode, bool> condition, Func<RBNode, T> selector)
+        private static IEnumerable<T> Traverse<T>(Node node, Func<Node, bool> condition, Func<Node, T> selector)
         {
             // Create a stack to avoid recursion
-            var stack = new Stack<RBNode>();
+            var stack = new Stack<Node>();
             var current = node;
             while (current != null)
                 if (current.Left != null)
                 {
                     // Save current state and go left
                     stack.Push(current);
-                    current = current.RBLeft;
+                    current = current.Left;
                 }
                 else
                 {
                     do
                     {
                         if (condition(current)) yield return selector(current);
-                        current = current.RBRight;
+                        current = current.Right;
                     } while (current == null && stack.Count > 0 && (current = stack.Pop()) != null);
                 }
         }
@@ -374,34 +374,23 @@ namespace AlgorithmLib.Tree
         }
         
         [DebuggerDisplay("Key={Key}, Value={Value}")]
-        public class RBNode : INode<TKey, TValue>
+        public class Node
         {
             /// <summary>Gets or sets the color of the node.</summary>
             public bool IsBlack;
-
-            internal RBNode RBLeft
-            {
-                get => (RBNode) Left;
-                set => Left = value;
-            }
-
-            internal RBNode RBRight
-            {
-                get => (RBNode) Right;
-                set => Right = value;
-            }
             
             public TKey Key { get; set; }
             public TValue Value { get; set; }
-            public INode<TKey, TValue> Left { get; set; }
-            public INode<TKey, TValue> Right { get; set; }
+            public Node Left { get; set; }
+            public Node Right { get; set; }
         }
 
         public class TreeIterator
         {
             private readonly LeftLeaningRedBlackTree<TKey, TValue> tree;
-            private readonly Stack<RBNode> nextStack = new Stack<RBNode>();
-            private readonly Stack<RBNode> prevStack = new Stack<RBNode>();
+			
+            private readonly Stack<Node> nextStack = new Stack<Node>();
+            private readonly Stack<Node> prevStack = new Stack<Node>();
             
             public TreeIterator(LeftLeaningRedBlackTree<TKey,TValue> tree)
             {
@@ -411,7 +400,7 @@ namespace AlgorithmLib.Tree
                 Reset();
             }
             
-            public RBNode Current { get; private set; }
+            public Node Current { get; private set; }
 
             public TKey Key => Current != null ? Current.Key : default(TKey);
             public TValue Value => Current != null ? Current.Value : default(TValue);
@@ -442,8 +431,7 @@ namespace AlgorithmLib.Tree
             public bool HasNext()
             {
                 return Current != null;
-            }
-            
+            }           
             
             
             public void Next()
@@ -462,14 +450,14 @@ namespace AlgorithmLib.Tree
                     // Right subtree in place.
                     // Push the right node. If the left node is missed, it would be processed next.
                     // Otherwise it will be processed after left subtree.
-                    nextStack.Push(Current.RBRight);
+                    nextStack.Push(Current.Right);
                 }
 
                 if (Current.Left != null)
                 {
                     // The left node in place.
                     // It would be the next current.
-                    Current = Current.RBLeft;
+                    Current = Current.Left;
                 }
                 else
                 {
@@ -481,7 +469,7 @@ namespace AlgorithmLib.Tree
 
             public bool HasPrev()
             {
-                return Current != null;
+                return Current != tree.rootNode;
             }
             
             public void Prev()
