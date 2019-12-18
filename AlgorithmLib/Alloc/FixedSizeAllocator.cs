@@ -1,125 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using AlgorithmLib.Tree;
+using System.Text;
+using size_t = System.Int64;
+
 
 namespace AlgorithmLib.Alloc
 {
-    public unsafe class FixedSizeAllocator : IDisposable
-    {
-        private const uint PageSize = 4096;
-        private IntPtr head = IntPtr.Zero;
-        private uint free = 0;
-        private int currentPage = -1;
-        public uint BlockSize { get; private set; }
 
+    public class FixedSizeAllocator : IDisposable
+    {
+        private const size_t PageSize = 4096;
+        private readonly size_t chunkSize = 0;
+        private bool isDispose = false;
+        private readonly StackLinkedList freeList = new StackLinkedList();
         private readonly List<IntPtr> pages = new List<IntPtr>();
 
-        public FixedSizeAllocator(uint blockSize)
+        public FixedSizeAllocator(size_t chunkSize)
         {
-            BlockSize = blockSize;
+            this.chunkSize = chunkSize;
+            IsInited = false;
         }
 
-        public bool IsInited { get; private set; } = false;
-
-        public void Init()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                CreatePage();
-            }
-
-            currentPage = 0;
-            head = pages[currentPage];
-            free = PageSize;
-            IsInited = true;
-        }
-
+        public bool IsInited { get; private set; }
         public IntPtr Alloc()
         {
-            if(!IsInited) throw new ArgumentException();
-            if (BlockSize > free)
+            if (!IsInited) throw new ArgumentException();
+            if (freeList.IsHeadNull())
             {
-                head = GetPage();
-                free = PageSize;
+                GetPage();
             }
-
-            var tmp = head;
-            head = IntPtr.Add(head, (int)BlockSize);
-            free -= BlockSize;
-            return tmp;
+            return freeList.Pop();
         }
-
-        private IntPtr CreatePage()
-        {
-            var page = WinApi.VirtualAlloc(IntPtr.Zero, PageSize,  WinApi.AllocationType.Commit | WinApi.AllocationType.Reserve, WinApi.MemoryProtection.Readwrite);
-            pages.Add(page);
-            return page;
-        }
-
-        private static readonly double Goldenratio = (1 + Math.Sqrt(5)) / 2;
-
-        private IntPtr GetPage()
-        {
-            if ( (currentPage+1) == pages.Count)
-            {
-                for (int i = 0; i < pages.Count * Goldenratio; i++)
-                {
-                    CreatePage();
-                }
-            }
-
-            ++currentPage;
-            return pages[currentPage];
-        }
-
-        ~FixedSizeAllocator()
-        {
-            Dispose(isDispose);
-        }
-
-#if DEBUG
-
-        public void PrintCurrentPage()
-        {
-            var span = new Span<byte>(pages[currentPage].ToPointer(), (int)PageSize);
-            
-            Console.WriteLine("Current Page");
-            for (int i = 0; i < span.Length / BlockSize; i++)
-            {
-                for (int j = 0; j < BlockSize; j++)
-                {
-                    int index = i * (int)BlockSize + j;
-                    Console.Write($@"{span[index]} ");
-                }
-
-                Console.WriteLine();
-            }
-        }
-
-        public void WriteCurrentPage()
-        {
-            var span = new Span<byte>(pages[currentPage].ToPointer(), (int)PageSize);
-
-            for (int i = 0; i < span.Length; i++)
-            {
-                span[i] = Byte.MaxValue;
-            }
-        }
-
-#endif
-
-
-        public void Destroy()
-        {
-            Dispose(isDispose);
-        }
-
-        private bool isDispose = false;
 
         public void Dispose()
         {
             Dispose(true);
+        }
+
+        public void Free(IntPtr ptr)
+        {
+            if (!IsInited) throw new ArgumentException();
+
+            freeList.Push(ref ptr);
+        }
+
+        public void Init()
+        {
+            if(IsInited) return;
+
+            GetPage();
+            IsInited = true;
         }
 
         private void Dispose(bool disposing)
@@ -127,10 +57,68 @@ namespace AlgorithmLib.Alloc
             if (disposing) return;
 
             foreach (var ptr in pages) WinApi.VirtualFree(ptr, 0, WinApi.FreeType.MemRelease);
-            head = IntPtr.Zero;
-            free = 0;
+            pages.Clear();
+            IsInited = false;
             isDispose = true;
         }
 
+        private void GetPage()
+        {
+            var page = WinApi.VirtualAlloc(IntPtr.Zero, (int)PageSize, WinApi.AllocationType.Commit | WinApi.AllocationType.Reserve, WinApi.MemoryProtection.Readwrite);
+            pages.Add(page);
+            SlicePage(page);
+        }
+
+        private void SlicePage(IntPtr page)
+        {
+            var chunks = PageSize / chunkSize;
+
+            for (int i = 0; i < chunks; ++i)
+            {
+                var address = IntPtr.Add(page, (int)(i * chunkSize));
+                freeList.Push(ref address);
+            }
+        }
     }
+
+   
+
+    internal unsafe class StackLinkedList
+    {
+        unsafe ref struct Node
+        {
+            public Node* Next;
+        };
+
+        public bool IsHeadNull()
+        {
+            return head == null;
+        }
+
+        private Node* head;
+
+        public IntPtr Pop()
+        {
+            if (head == null) throw new NullReferenceException();
+
+            ref var top = ref head;
+            head = head->Next;
+            var ptr = new IntPtr(top);
+            return ptr;
+
+        }
+
+        private void Push(ref Node* newNode)
+        {
+            newNode->Next = head;
+            head = newNode;
+        }
+
+        public void Push(ref IntPtr newNode)
+        {
+            var node = (Node*)newNode;
+            Push(ref node);
+        }
+        
+    };
 }

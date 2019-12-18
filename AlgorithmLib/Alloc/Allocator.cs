@@ -5,7 +5,7 @@ namespace AlgorithmLib.Alloc
 {
     public unsafe class Allocator : IDisposable
     {
-        private readonly Dictionary<int, FixedSizeAllocator> allocators = new Dictionary<int, FixedSizeAllocator>();
+        private readonly Dictionary<int, StackAllocator> allocators = new Dictionary<int, StackAllocator>();
 
         public Allocator()
         {
@@ -27,7 +27,7 @@ namespace AlgorithmLib.Alloc
 
             for (; start <= 512; start <<= 2)
             {
-                var alocator = new FixedSizeAllocator(start);
+                var alocator = new StackAllocator(start);
                 alocator.Init();
 
                 allocators.Add((int)start, alocator);

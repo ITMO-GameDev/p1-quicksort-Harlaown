@@ -14,7 +14,7 @@ namespace AlgorithmLib.Console
     {
         private static void Main(string[] args)
         {
-            var alloc = new FixedSizeAllocator(512);
+            var alloc = new StackAllocator(512);
             
             alloc.Init();
             

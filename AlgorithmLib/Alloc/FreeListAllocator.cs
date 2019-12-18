@@ -3,93 +3,99 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Node = AlgorithmLib.Alloc.SinglyLinkedList.Node;
+
 using size_t = System.Int64;
 namespace AlgorithmLib.Alloc
 {
 
-    internal unsafe class SinglyLinkedList
+   
+
+   
+
+    public unsafe class FreeListAllocator
     {
+
+        internal struct FreeHeader
+        {
+            public size_t BlockSize;
+        };
+
+        internal struct AllocationHeader
+        {
+            public size_t BlockSize;
+            public char Padding;
+        };
+
         internal unsafe struct Node
         {
             public FreeHeader Data;
             public Node* Next;
         }
 
-        internal Node* Head;
-
-        public SinglyLinkedList() { }
-
-        public void Insert(Node* previousNode, Node* newNode)
+        internal unsafe class SinglyLinkedList
         {
-            if (previousNode == null)
+           
+
+            internal Node* Head;
+
+            public SinglyLinkedList() { }
+
+            public void Insert(Node* previousNode, Node* newNode)
             {
-                // Is the first node
-                if (Head != null)
+                if (previousNode == null)
                 {
-                    // The list has more elements
-                    newNode->Next = Head;
+                    // Is the first node
+                    if (Head != null)
+                    {
+                        // The list has more elements
+                        newNode->Next = Head;
+                    }
+                    else
+                    {
+                        newNode->Next = null;
+                    }
+
+                    Head = newNode;
                 }
                 else
                 {
-                    newNode->Next = null;
+                    if (previousNode->Next == null)
+                    {
+                        // Is the last node
+                        previousNode->Next = newNode;
+                        newNode->Next = null;
+                    }
+                    else
+                    {
+                        // Is a middle node
+                        newNode->Next = previousNode->Next;
+                        previousNode->Next = newNode;
+                    }
                 }
-
-                Head = newNode;
             }
-            else
+
+            public void Remove(Node* previousNode, Node* deleteNode)
             {
-                if (previousNode->Next == null)
+                if (previousNode == null)
                 {
-                    // Is the last node
-                    previousNode->Next = newNode;
-                    newNode->Next = null;
+                    // Is the first node
+                    if (deleteNode->Next == null)
+                    {
+                        // List only has one element
+                        Head = null;
+                    }
+                    else
+                    {
+                        // List has more elements
+                        Head = deleteNode->Next;
+                    }
                 }
                 else
                 {
-                    // Is a middle node
-                    newNode->Next = previousNode->Next;
-                    previousNode->Next = newNode;
+                    previousNode->Next = deleteNode->Next;
                 }
             }
-        }
-
-        public void Remove(Node* previousNode, Node* deleteNode)
-        {
-            if (previousNode == null)
-            {
-                // Is the first node
-                if (deleteNode->Next == null)
-                {
-                    // List only has one element
-                    Head = null;
-                }
-                else
-                {
-                    // List has more elements
-                    Head = deleteNode->Next;
-                }
-            }
-            else
-            {
-                previousNode->Next = deleteNode->Next;
-            }
-        }
-    };
-
-    internal struct FreeHeader
-    {
-        public size_t BlockSize;
-    };
-
-    internal struct AllocationHeader
-    {
-        public size_t BlockSize;
-        public char Padding;
-    };
-
-    public unsafe class FreeListAllocator
-    {
+        };
         public FreeListAllocator(size_t size, FindPlacementPolicy policy)
         {
             this.policy = policy;
